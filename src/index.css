@@ -1,0 +1,265 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    font-family: 'Orbitron', sans-serif;
+    background: #05060f;
+    color: #fff;
+  }
+}
+
+/* ================== NÉON ARCADE RÉTRO ================== */
+
+.arcade-bg {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(123, 47, 247, 0.22), transparent 60%),
+    radial-gradient(ellipse at 50% 110%, rgba(0, 240, 255, 0.15), transparent 55%),
+    linear-gradient(180deg, #070818 0%, #05060f 100%);
+  position: relative;
+}
+
+/* grille rétro au sol */
+.arcade-bg::before {
+  content: '';
+  position: fixed;
+  inset: 55% 0 0 0;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.08) 1px, transparent 1px);
+  background-size: 44px 44px;
+  transform: perspective(320px) rotateX(58deg) scale(1.6);
+  transform-origin: top;
+  pointer-events: none;
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.16) 0px,
+    rgba(0, 0, 0, 0.16) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.5;
+}
+
+.game-title {
+  font-family: 'Press Start 2P', monospace;
+  color: #00f0ff;
+  text-shadow: 0 0 12px #00f0ff, 0 0 45px #00f0ff, 0 0 90px #00b3ff;
+  animation: title-pulse 2.4s ease-in-out infinite;
+}
+
+.game-title-alt {
+  font-family: 'Press Start 2P', monospace;
+  color: #ff2ed8;
+  text-shadow: 0 0 12px #ff2ed8, 0 0 45px #ff2ed8, 0 0 90px #b100ff;
+  animation: title-pulse 2.4s ease-in-out infinite 0.4s;
+}
+
+@keyframes title-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.82; }
+}
+
+.neon-subtitle {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.score-font {
+  font-family: 'Press Start 2P', monospace;
+}
+
+.rules-box {
+  background: rgba(10, 12, 34, 0.75);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  box-shadow: 0 0 22px rgba(0, 240, 255, 0.18), inset 0 0 30px rgba(0, 240, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px 26px;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #cbd5f5;
+}
+
+.start-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.85rem;
+  padding: 16px 26px;
+  color: #05060f;
+  background: linear-gradient(180deg, #39ff6a, #00d68f);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 0 18px rgba(57, 255, 106, 0.55), 0 4px 0 #047857;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.start-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 0 30px rgba(57, 255, 106, 0.85), 0 6px 0 #047857;
+}
+.start-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 14px rgba(57, 255, 106, 0.6), 0 1px 0 #047857;
+}
+
+/* ------- HUD ------- */
+
+.player-card {
+  background: rgba(10, 12, 34, 0.75);
+  border: 2px solid;
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: box-shadow 0.25s, transform 0.25s;
+}
+.player-card-active {
+  transform: scale(1.04);
+}
+
+.turn-indicator {
+  margin-top: 6px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  color: #fff;
+  animation: blink 0.9s steps(2) infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0.25; }
+}
+
+.hud-box {
+  background: rgba(10, 12, 34, 0.75);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.12);
+}
+
+.event-box {
+  border-color: rgba(255, 46, 216, 0.55);
+  box-shadow: 0 0 16px rgba(255, 46, 216, 0.25);
+  animation: event-glow 1.2s ease-in-out infinite;
+}
+
+@keyframes event-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 46, 216, 0.2); }
+  50% { box-shadow: 0 0 26px rgba(255, 46, 216, 0.5); }
+}
+
+/* Jauge circulaire de la balance */
+.balance-gauge {
+  position: relative;
+  height: 74px;
+  border-bottom: 3px solid rgba(0, 240, 255, 0.5);
+  border-radius: 0 0 90px 90px / 0 0 12px 12px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 100%, rgba(0, 240, 255, 0.14), transparent 70%);
+}
+.balance-gauge-center {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  height: 10px;
+  background: #fff;
+  transform: translateX(-50%);
+  box-shadow: 0 0 8px #fff;
+}
+.balance-gauge-needle {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 5px;
+  height: 64px;
+  margin-left: -2.5px;
+  transform-origin: bottom center;
+  border-radius: 3px;
+  box-shadow: 0 0 12px currentColor;
+  transition: transform 0.18s ease-out;
+}
+
+.danger-bar {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.danger-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  box-shadow: 0 0 10px currentColor;
+  transition: width 0.25s ease-out;
+}
+
+.key {
+  display: inline-block;
+  padding: 1px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 5px;
+  font-size: 0.65rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.speed-bar {
+  display: inline-block;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* ------- Bannières ------- */
+
+.banner-overlay {
+  position: fixed;
+  top: 16%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 60;
+  pointer-events: none;
+  animation: banner-in 0.3s ease-out;
+}
+
+.banner-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(1.1rem, 3.4vw, 2.2rem);
+  text-align: center;
+  padding: 0 20px;
+  animation: banner-zoom 0.35s ease-out;
+}
+
+.banner-sub {
+  font-size: 0.9rem;
+  color: #e2e8f0;
+  background: rgba(5, 6, 15, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  padding: 6px 16px;
+}
+
+@keyframes banner-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes banner-zoom {
+  from { transform: scale(1.6); }
+  to { transform: scale(1); }
+}
