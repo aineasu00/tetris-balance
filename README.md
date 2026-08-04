@@ -1,45 +1,59 @@
 # ⚖️ TETRIS BALANCE
 
-Un Tetris **tour par tour (2 à 4 joueurs)** posé sur une balance : chaque pièce a un **poids**, et si le centre de gravité sort de la base… tout s'effondre ! Handicaps façon **Mario Kart** : objets bonus, poids variables, événements surprises.
+Un **Tetris multijoueur tour par tour** posé sur une **balance** : chaque pièce a un **poids**, et si le plateau penche trop… tout s'effondre ! Avec des **handicaps façon Mario Kart** (objets, poids variables, événements aléatoires) et une direction artistique **néon arcade rétro**.
 
-## 🎮 Jouer
+🎮 **Jouer en ligne** : https://aineasu00.github.io/tetris-balance/
 
-▶️ **[Jouer en ligne sur GitHub Pages](https://aineasu00.github.io/tetris-balance/)**
+## Les règles
 
-## 📜 Règles
+- **2 à 4 joueurs** sur le même écran, chacun son tour (une pièce par tour).
+- Chaque pièce possède un **multiplicateur de poids** : plus elle est lourde, plus elle fait pencher la balance… **et plus elle tombe vite** (la gravité peut être un piège !).
+- Le plateau tient en équilibre sur un pivot : si le centre de gravité sort de la base de support, **effondrement** — le joueur fautif perd une vie (3 vies par joueur).
+- Les lignes complétées rapportent des points (100 / 300 / 500 / 800) et un **bonus ZEN +50** si la balance est quasi parfaitement équilibrée.
 
-- À tour de rôle, chaque joueur place **1 pièce** sur le plateau partagé (même clavier)
-- Les pièces **tombent toutes seules** : plus elles sont lourdes, plus elles dévalent vite — une enclume ne pardonne pas
-- Trop de poids d'un côté = **EFFONDREMENT** → 1 vie en moins (3 vies, puis élimination)
-- Compléter des lignes **allège la balance** et rapporte des points (+ objets bonus)
-- Bonus **ZEN +50** si la balance reste quasi parfaitement équilibrée
-- **Dernier joueur debout** — ou meilleur score au tour 60 — gagne la partie
+## Modes de jeu
 
-## 🕹️ Contrôles
+| Mode | Description |
+|------|-------------|
+| ⏱️ **60 TOURS** | Sprint au score : le meilleur total au tour 60 gagne |
+| ♾️ **INFINI** | Pas de limite : l'élimination seule décide du vainqueur |
+
+## Modes de balance
+
+| Mode | Effet |
+|------|-------|
+| ⚖️ **STABLE** | La balance classique, tolérante |
+| 🤸 **CORDE RAIDE** | Base étroite : ça bascule VITE |
+| 🛼 **PIVOT MOBILE** | Le pivot patine de gauche à droite en permanence |
+| 🌪️ **TEMPÊTE** | Des rafales imprévisibles secouent la balance |
+| 🪓 **USURE** | La balance s'affaiblit tour après tour… |
+
+## Handicaps façon Mario Kart
+
+Le **rubber-banding** avantage les derniers et piège le leader (qui reçoit des pièces plus lourdes).
+
+**Objets** (touche `E`) : 🪶 Plume (pièce sans poids) • ⚓ Enclume (prochaine pièce adverse ultra lourde) • 🏛️ Pilier (balance renforcée 3 tours) • 🧨 Dynamite (détruit la ligne la plus basse).
+
+**Événements aléatoires** : 🌋 Tremblement • 🌧️ Pluie de fer • 🍃 Brise légère • 💨 Vent lateral.
+
+## Contrôles
 
 | Touche | Action |
 |--------|--------|
-| ◀ ▶ | déplacer la pièce |
-| ▲ | pivoter |
-| ▼ | descendre / poser |
-| ESPACE | chute libre |
-| E | utiliser l'objet |
+| ◀ ▶ | Déplacer la pièce |
+| ▲ | Pivoter |
+| ▼ | Descendre / poser |
+| `ESPACE` | Chute libre (pose immédiate) |
+| `E` | Utiliser l'objet |
 
-## 🏎️ Handicaps façon Mario Kart
+## Développement
 
-- **Poids variables** : LÉGER / NORMAL / LOURD (et le poids pilote la vitesse de chute)
-- **Objets bonus** : 🪶 Plume (pièce sans poids) • ⚓ Enclume (pièce ultra lourde pour l'adversaire) • 🏛️ Pilier (balance renforcée ×2) • 🧨 Dynamite (fait sauter la ligne du bas)
-- **Événements aléatoires** : 🌋 tremblement de terre • ☄️ pluie de fer • 🍃 brise légère • 🌀 vent latéral
-- **Rubber-banding** : le leader reçoit des pièces plus lourdes, le dernier reçoit des boîtes surprises
-
-## 🛠️ Développement
+Stack : **React 19 + TypeScript + Vite + Tailwind CSS**, rendu sur canvas 2D, sons synthétisés en WebAudio (aucun asset).
 
 ```bash
 npm install
-npm run dev      # serveur local
-npm run build    # build de production (dist/)
+npm run dev    # développement
+npm run build  # production (dist/)
 ```
 
-Stack : React 19 + TypeScript + Vite + Tailwind CSS — rendu canvas, synthèse WebAudio, DA néon arcade rétro.
-
-Le déploiement sur GitHub Pages est automatique via GitHub Actions à chaque push sur `main` (build → branche `gh-pages`).
+Le déploiement sur **GitHub Pages** est automatique : chaque push sur `main` déclenche le workflow GitHub Actions qui build et publie `dist/` sur la branche `gh-pages`.

@@ -1,11 +1,17 @@
 // ============================================================
 // TETRIS BALANCE — Écrans : menu principal & fin de partie
 // ============================================================
+import { useState } from 'react';
 import type { GameState } from '../hooks/useGame';
+import { BALANCE_MODES, GAME_MODES } from '../game/constants';
+import type { BalanceModeId, GameMode } from '../game/constants';
 
-export function MenuScreen({ onStart }: { onStart: (players: number) => void }) {
+export function MenuScreen({ onStart }: { onStart: (players: number, gameMode: GameMode, balanceMode: BalanceModeId) => void }) {
+  const [gameMode, setGameMode] = useState<GameMode>('TOURS');
+  const [balanceMode, setBalanceMode] = useState<BalanceModeId>('STABLE');
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-8 px-4 relative z-10">
+    <div className="flex flex-col items-center justify-center min-h-screen gap-6 px-4 py-8 relative z-10">
       <div className="text-center">
         <h1 className="game-title text-5xl md:text-7xl">TETRIS</h1>
         <h1 className="game-title-alt text-4xl md:text-6xl mt-2">BALANCE</h1>
@@ -14,23 +20,52 @@ export function MenuScreen({ onStart }: { onStart: (players: number) => void }) 
         </p>
       </div>
 
-      <div className="rules-box">
-        <p>⚖️ Chaque pièce a un <b>poids</b> — placez-la sans faire basculer la balance !</p>
-        <p>⏱️ Les pièces <b>tombent toutes seules</b> : plus elles sont lourdes, plus elles dévalent vite. Une enclume ne pardonne pas…</p>
-        <p>💥 Trop de poids d'un côté = <b>effondrement</b> et une vie en moins.</p>
-        <p>🎁 Objets bonus, poids variables et événements surprises façon <b>Mario Kart</b>.</p>
-        <p>🏆 Dernier joueur debout — ou meilleur score au tour 60 — gagne la partie.</p>
+      {/* Mode de jeu */}
+      <div className="w-full max-w-2xl">
+        <h2 className="neon-subtitle text-center text-cyan-300 mb-2">MODE DE JEU</h2>
+        <div className="flex justify-center gap-3">
+          {(Object.keys(GAME_MODES) as GameMode[]).map(id => (
+            <button
+              key={id}
+              onClick={() => setGameMode(id)}
+              className={`mode-chip ${gameMode === id ? 'mode-chip-on' : ''}`}
+            >
+              <span className="text-lg">{GAME_MODES[id].icon} {GAME_MODES[id].name}</span>
+              <span className="mode-chip-desc">{GAME_MODES[id].desc}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Mode de balance */}
+      <div className="w-full max-w-3xl">
+        <h2 className="neon-subtitle text-center text-fuchsia-300 mb-2">MODE DE BALANCE</h2>
+        <div className="flex flex-wrap justify-center gap-3">
+          {(Object.keys(BALANCE_MODES) as BalanceModeId[]).map(id => (
+            <button
+              key={id}
+              onClick={() => setBalanceMode(id)}
+              className={`mode-chip mode-chip-balance ${balanceMode === id ? 'mode-chip-on-fuchsia' : ''}`}
+            >
+              <span className="text-sm font-bold">{BALANCE_MODES[id].icon} {BALANCE_MODES[id].name}</span>
+              <span className="mode-chip-desc">{BALANCE_MODES[id].desc}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex gap-4">
         {[2, 3, 4].map(n => (
-          <button key={n} onClick={() => onStart(n)} className="start-btn">
+          <button key={n} onClick={() => onStart(n, gameMode, balanceMode)} className="start-btn">
             {n} JOUEURS
           </button>
         ))}
       </div>
 
-      <p className="text-slate-400 text-xs">Même clavier pour tous • ◀▶ déplacer • ▲ pivoter • ▼ poser • ESPACE chute • E objet</p>
+      <p className="text-slate-400 text-xs text-center">
+        Chaque pièce a un poids • les pièces tombent toutes seules (plus c'est lourd, plus ça dévale) • effondrement = 1 vie en moins<br />
+        ◀▶ déplacer • ▲ pivoter • ▼ poser • ESPACE chute • E objet
+      </p>
     </div>
   );
 }

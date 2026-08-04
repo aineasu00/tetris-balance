@@ -3,7 +3,7 @@
 // ============================================================
 import type { GameState } from '../hooks/useGame';
 import { ITEMS } from '../game/handy';
-import { WEIGHT_LABEL, WEIGHT_COLOR, MAX_TURNS, fallIntervalFor } from '../game/constants';
+import { WEIGHT_LABEL, WEIGHT_COLOR, MAX_TURNS, fallIntervalFor, BALANCE_MODES } from '../game/constants';
 
 function fallSpeedLabel(mult: number): { label: string; color: string; bars: number } {
   const ms = fallIntervalFor(mult);
@@ -60,7 +60,9 @@ export function InfoPanel({ state }: { state: GameState }) {
     <div className="flex flex-col gap-4 w-64">
       {/* Jauge de la balance */}
       <div className="hud-box">
-        <h2 className="neon-subtitle text-sm tracking-widest text-cyan-300 mb-2">BALANCE</h2>
+        <h2 className="neon-subtitle text-sm tracking-widest text-cyan-300 mb-2">
+          BALANCE <span className="text-fuchsia-300">{BALANCE_MODES[state.balanceMode].icon} {BALANCE_MODES[state.balanceMode].name}</span>
+        </h2>
         <div className="balance-gauge">
           <div className="balance-gauge-center" />
           <div
@@ -132,7 +134,10 @@ export function InfoPanel({ state }: { state: GameState }) {
       {/* Tour */}
       <div className="hud-box text-center">
         <span className="text-xs text-slate-400">TOUR</span>
-        <div className="text-xl font-black text-white score-font">{state.turn} <span className="text-slate-500 text-sm">/ {MAX_TURNS}</span></div>
+        <div className="text-xl font-black text-white score-font">
+          {state.turn}{' '}
+          <span className="text-slate-500 text-sm">{state.gameMode === 'INFINI' ? '• ∞' : `/ ${MAX_TURNS}`}</span>
+        </div>
       </div>
 
       {/* Contrôles */}
