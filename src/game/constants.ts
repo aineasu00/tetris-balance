@@ -28,6 +28,47 @@ export const fallIntervalFor = (mult: number): number => {
   return Math.max(FALL_MIN_MS, FALL_BASE_MS - mult * FALL_PER_MULT);
 };
 
+// --- Modes de balance ---
+// Chaque mode change la physique pour mettre la pression différemment.
+export type BalanceModeId = 'STABLE' | 'CORDE_RAIDE' | 'PIVOT_MOBILE' | 'TEMPETE' | 'USURE';
+
+export interface BalanceMode {
+  id: BalanceModeId;
+  name: string;
+  icon: string;
+  desc: string;
+  support: number;   // demi-largeur de la base de sustentation (colonnes)
+  boardMass: number; // masse propre du plateau (stabilité de départ)
+}
+
+export const BALANCE_MODES: Record<BalanceModeId, BalanceMode> = {
+  STABLE:       { id: 'STABLE',       name: 'STABLE',      icon: '⚖️', desc: 'La balance classique, tolérante.', support: 2.2, boardMass: 26 },
+  CORDE_RAIDE:  { id: 'CORDE_RAIDE',  name: 'CORDE RAIDE', icon: '🤸', desc: 'Base étroite : ça bascule VITE.', support: 1.5, boardMass: 22 },
+  PIVOT_MOBILE: { id: 'PIVOT_MOBILE', name: 'PIVOT MOBILE', icon: '🛼', desc: 'Le pivot patine de gauche à droite en permanence !', support: 2.2, boardMass: 26 },
+  TEMPETE:      { id: 'TEMPETE',      name: 'TEMPÊTE',     icon: '🌪️', desc: 'Des rafales imprévisibles secouent la balance.', support: 2.0, boardMass: 26 },
+  USURE:        { id: 'USURE',        name: 'USURE',       icon: '🪓', desc: "La balance s'affaiblit tour après tour…", support: 2.4, boardMass: 26 },
+};
+
+// PIVOT MOBILE : déport du pivot (en colonnes), période 10 s, amplitude ±1,1 col.
+export const pivotOffsetAt = (tMs: number): number =>
+  Math.sin((tMs * Math.PI) / 5000) * 1.1;
+
+// USURE : la base se rétrécit à chaque tour (min 50 %).
+export const wearScale = (turn: number): number =>
+  Math.max(0.5, 1 - (turn - 1) * 0.012);
+
+// TEMPÊTE : amplitude des rafales (colonnes) + oscillation visuelle.
+export const GUST_AMPLITUDE = 0.5;
+export const gustSwayAt = (tMs: number): number =>
+  Math.sin(tMs / 350) * 2.2 + Math.sin(tMs / 130) * 0.8;
+
+// --- Modes de jeu ---
+export type GameMode = 'TOURS' | 'INFINI';
+export const GAME_MODES: Record<GameMode, { name: string; icon: string; desc: string }> = {
+  TOURS:  { name: '60 TOURS', icon: '⏱️', desc: 'Sprint au score : le meilleur total au tour 60 gagne' },
+  INFINI: { name: 'INFINI',   icon: '♾️', desc: "Pas de limite : l'élimination seule décide du vainqueur" },
+};
+
 // --- Règles ---
 export const START_LIVES = 3;
 export const MAX_TURNS = 60;

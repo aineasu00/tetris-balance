@@ -96,7 +96,18 @@ export function dropY(grid: Grid, piece: ActivePiece): number {
 // PHYSIQUE DE LA BALANCE
 // Le centre de gravité doit rester dans la base de sustentation.
 // ------------------------------------------------------------
-export function computeBalance(grid: Grid, supportBoost = 1): BalanceInfo {
+export interface BalanceOpts {
+  support?: number;      // demi-base du mode (défaut BASE_SUPPORT)
+  boardMass?: number;    // masse du plateau (défaut BOARD_MASS)
+  supportBoost?: number; // pilier : ×2
+  supportScale?: number; // usure : rétrécit la base
+  offsetShift?: number;  // déport externe (pivot mobile, rafale) en colonnes
+}
+
+export function computeBalance(grid: Grid, opts: BalanceOpts = {}): BalanceInfo {
+  const boardMass = opts.boardMass ?? BOARD_MASS;
+  const support =
+    (opts.support ?? BASE_SUPPORT) * (opts.supportBoost ?? 1) * (opts.supportScale ?? 1);
   let mass = 0;
   let torque = 0;
   for (let y = 0; y < ROWS; y++) {
@@ -107,9 +118,8 @@ export function computeBalance(grid: Grid, supportBoost = 1): BalanceInfo {
       torque += c.weight * (x - (COLS - 1) / 2);
     }
   }
-  const total = mass + BOARD_MASS;
-  const avgOffset = total > 0 ? torque / total : 0;
-  const support = BASE_SUPPORT * supportBoost;
+  const total = mass + boardMass;
+  const avgOffset = (total > 0 ? torque / total : 0) + (opts.offsetShift ?? 0);
   const angleDeg = Math.max(-MAX_VISUAL_TILT, Math.min(MAX_VISUAL_TILT, avgOffset * TILT_PER_COL));
   const danger = Math.abs(avgOffset) / support;
   return {
