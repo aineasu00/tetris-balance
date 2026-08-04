@@ -6,12 +6,14 @@ import {
   TETROMINOES, PLAYER_COLORS, PLAYER_NAMES,
   START_LIVES, MAX_TURNS, EVENT_EVERY, SURPRISE_EVERY,
   fallIntervalFor, LOCK_DELAY_MS,
+  BALANCE_MODES, pivotOffsetAt, wearScale, GUST_AMPLITUDE,
 } from '../game/constants';
+import type { BalanceModeId, GameMode } from '../game/constants';
 import {
   emptyGrid, rotateMatrix, collides,
   lockPiece, clearLines, dropY, computeBalance, rollWeightMult,
 } from '../game/logic';
-import type { Grid, ActivePiece, BalanceInfo } from '../game/logic';
+import type { Grid, ActivePiece, BalanceInfo, BalanceOpts } from '../game/logic';
 import { ITEMS, EVENTS, randomItem, randomEvent } from '../game/handy';
 import type { ItemType, EventDef } from '../game/handy';
 import { sfx } from '../game/sound';
@@ -63,6 +65,8 @@ export interface GameState {
   winner: number | null;
   collapseReason: string;
   lastGain: { playerId: number; points: number; label: string } | null;
+  gameMode: GameMode;
+  balanceMode: BalanceModeId;
 }
 
 const LINE_POINTS = [0, 100, 300, 500, 800];
@@ -88,6 +92,23 @@ function initialState(): GameState {
     winner: null,
     collapseReason: '',
     lastGain: null,
+    gameMode: 'TOURS',
+    balanceMode: 'STABLE',
+  };
+}
+
+/** Options physiques du mode de balance choisi (pivot mobile, rafale, usure). */
+function modeOpts(st: GameState, supportBoost = 1): BalanceOpts {
+  const mode = BALANCE_MODES[st.balanceMode];
+  let offsetShift = 0;
+  if (mode.id === 'PIVOT_MOBILE') offsetShift -= pivotOffsetAt(performance.now());
+  if (mode.id === 'TEMPETE') offsetShift += (Math.random() * 2 - 1) * GUST_AMPLITUDE;
+  return {
+    support: mode.support,
+    boardMass: mode.boardMass,
+    supportBoost,
+    supportScale: mode.id === 'USURE' ? wearScale(st.turn) : 1,
+    offsetShift,
   };
 }
 
@@ -145,7 +166,7 @@ export function useGame() {
   // ----------------------------------------------------------
   // Démarrage
   // ----------------------------------------------------------
-  const startGame = useCallback((playerCount: number) => {
+  const startGame = useCallback((playerCount: number, gameMode: GameMode, balanceMode: BalanceModeId) => {
     const players: PlayerState[] = Array.from({ length: playerCount }, (_, i) => ({
       id: i,
       name: PLAYER_NAMES[i],
@@ -156,11 +177,14 @@ export function useGame() {
       eliminated: false,
       lines: 0,
     }));
+    const mode = BALANCE_MODES[balanceMode];
     let st: GameState = {
       ...initialState(),
       phase: 'play',
       players,
-      banner: makeBanner('QUE LA PARTIE COMMENCE !', 'info', 'À tour de rôle, placez vos pièces… sans faire basculer la balance'),
+      gameMode,
+      balanceMode,
+      banner: makeBanner('QUE LA PARTIE COMMENCE !', 'info', `${mode.icon} ${mode.name} — ${mode.desc}`),
     };
     const { piece } = spawnPiece(st, 0);
     st = { ...st, piece };
@@ -229,9 +253,9 @@ export function useGame() {
       event = turnsLeft > 0 ? { ...event, turnsLeft } : null;
     }
 
-    // Fin de partie au score si on dépasse le nombre de tours max
+    // Fin de partie au score si on dépasse le nombre de tours max (sauf mode INFINI)
     const active = st.players.filter(p => !p.eliminated);
-    if (turn > MAX_TURNS && active.length > 0) {
+    if (st.gameMode === 'TOURS' && turn > MAX_TURNS && active.length > 0) {
       const best = [...active].sort((a, b) => b.score - a.score)[0];
       sfx.gameover();
       return { ...st, turn, event, supportTurns, phase: 'gameover', winner: best.id, banner: null };
@@ -323,8 +347,7 @@ export function useGame() {
         }
       }
 
-      const supportBoost = prev.supportTurns > 0 ? 2 : 1;
-      const balance = computeBalance(grid, supportBoost);
+      const balance = computeBalance(grid, modeOpts(prev, prev.supportTurns > 0 ? 2 : 1));
 
       // Bonus ZEN : balance quasi parfaitement équilibrée
       if (balance.mass > 0 && Math.abs(balance.avgOffset) < 0.25) {
@@ -376,7 +399,7 @@ export function useGame() {
           st.banner = makeBanner('⚓ ENCLUME !', 'good', 'La prochaine pièce adverse sera ultra lourde…');
           break;
         case 'PILIER':
-          st = { ...st, supportTurns: 3, balance: computeBalance(st.grid, 2) };
+          st = { ...st, supportTurns: 3, balance: computeBalance(st.grid, modeOpts(st, 2)) };
           st.banner = makeBanner('🏛️ PILIER !', 'good', 'La balance est renforcée pendant 3 tours');
           break;
         case 'DYNAMITE': {
@@ -388,7 +411,7 @@ export function useGame() {
             const g = st.grid.filter((_, y) => y !== lowest);
             g.unshift(Array(st.grid[0].length).fill(null));
             pushFx({ type: 'dynamite', row: lowest });
-            st = { ...st, grid: g, balance: computeBalance(g, st.supportTurns > 0 ? 2 : 1) };
+            st = { ...st, grid: g, balance: computeBalance(g, modeOpts(st, st.supportTurns > 0 ? 2 : 1)) };
             st.banner = makeBanner('🧨 DYNAMITE !', 'good', 'La ligne la plus basse a explosé');
           } else {
             st.banner = makeBanner('🧨 DYNAMITE', 'info', 'Rien à faire exploser…');

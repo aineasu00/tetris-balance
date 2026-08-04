@@ -2,7 +2,7 @@
 // TETRIS BALANCE — Rendu canvas : plateau, balance, particules
 // ============================================================
 import { useEffect, useRef } from 'react';
-import { COLS, ROWS } from '../game/constants';
+import { COLS, ROWS, pivotOffsetAt, wearScale, gustSwayAt } from '../game/constants';
 import { dropY } from '../game/logic';
 import type { Grid, ActivePiece } from '../game/logic';
 import type { GameState, FxEvent } from '../hooks/useGame';
@@ -133,46 +133,47 @@ export default function GameCanvas({
       }
     };
 
-    const drawFulcrum = () => {
+    const drawFulcrum = (pivotX: number) => {
       ctx.save();
       // socle
       ctx.shadowColor = '#c44dff';
       ctx.shadowBlur = 22;
       ctx.fillStyle = '#7b2ff7';
       ctx.beginPath();
-      ctx.moveTo(PIVOT_X, PIVOT_Y - 4);
-      ctx.lineTo(PIVOT_X - 56, PIVOT_Y + 66);
-      ctx.lineTo(PIVOT_X + 56, PIVOT_Y + 66);
+      ctx.moveTo(pivotX, PIVOT_Y - 4);
+      ctx.lineTo(pivotX - 56, PIVOT_Y + 66);
+      ctx.lineTo(pivotX + 56, PIVOT_Y + 66);
       ctx.closePath();
       ctx.fill();
       ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(255,255,255,0.25)';
       ctx.beginPath();
-      ctx.moveTo(PIVOT_X, PIVOT_Y - 4);
-      ctx.lineTo(PIVOT_X - 20, PIVOT_Y + 66);
-      ctx.lineTo(PIVOT_X + 20, PIVOT_Y + 66);
+      ctx.moveTo(pivotX, PIVOT_Y - 4);
+      ctx.lineTo(pivotX - 20, PIVOT_Y + 66);
+      ctx.lineTo(pivotX + 20, PIVOT_Y + 66);
       ctx.closePath();
       ctx.fill();
       // base au sol
       ctx.fillStyle = '#3a1566';
-      roundRect(ctx, PIVOT_X - 90, PIVOT_Y + 66, 180, 12, 6);
+      roundRect(ctx, pivotX - 90, PIVOT_Y + 66, 180, 12, 6);
       ctx.fill();
       ctx.restore();
     };
 
-    const drawPlatform = (angleRad: number) => {
+    const drawPlatform = (angleRad: number, pivotX: number, widthScale: number) => {
+      const halfW = ((BOARD_W + 80) / 2) * widthScale;
       ctx.save();
-      ctx.translate(PIVOT_X, PIVOT_Y);
+      ctx.translate(pivotX, PIVOT_Y);
       ctx.rotate(angleRad);
-      ctx.translate(-PIVOT_X, -PIVOT_Y);
+      ctx.translate(-pivotX, -PIVOT_Y);
       ctx.shadowColor = '#00f0ff';
       ctx.shadowBlur = 20;
       ctx.fillStyle = '#0e7490';
-      roundRect(ctx, BOARD_X - 40, BOARD_Y + BOARD_H + 8, BOARD_W + 80, 18, 8);
+      roundRect(ctx, pivotX - halfW, BOARD_Y + BOARD_H + 8, halfW * 2, 18, 8);
       ctx.fill();
       ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(255,255,255,0.3)';
-      roundRect(ctx, BOARD_X - 40, BOARD_Y + BOARD_H + 8, BOARD_W + 80, 6, 3);
+      roundRect(ctx, pivotX - halfW, BOARD_Y + BOARD_H + 8, halfW * 2, 6, 3);
       ctx.fill();
       ctx.restore();
     };
@@ -230,8 +231,20 @@ export default function GameCanvas({
       if (st.event?.def.type === 'TREMBLEMENT' && st.phase === 'play') {
         target += Math.sin(now / 55) * (1.2 + st.balance.danger * 2.2);
       }
+      // TEMPÊTE : la balance tangue en permanence
+      if (st.balanceMode === 'TEMPETE' && st.phase === 'play') {
+        target += gustSwayAt(now);
+      }
       a.angle += (target - a.angle) * 0.08;
       const angleRad = (a.angle * Math.PI) / 180;
+
+      // --- pivot (mobile en mode PIVOT_MOBILE) + usure de la plateforme ---
+      const pivotX = st.balanceMode === 'PIVOT_MOBILE'
+        ? PIVOT_X + pivotOffsetAt(now) * CELL
+        : PIVOT_X;
+      const platformScale = st.balanceMode === 'USURE'
+        ? 0.55 + 0.45 * wearScale(st.turn)
+        : 1;
 
       // --- fin de l'animation d'effondrement ---
       if (st.phase === 'collapse' && !a.collapseCalled && now > a.collapseUntil) {
@@ -261,14 +274,14 @@ export default function GameCanvas({
       ctx.lineTo(W, PIVOT_Y + 78);
       ctx.stroke();
 
-      drawFulcrum();
-      drawPlatform(angleRad);
+      drawFulcrum(pivotX);
+      drawPlatform(angleRad, pivotX, platformScale);
 
       // plateau + pièces (tournent autour du pivot)
       ctx.save();
-      ctx.translate(PIVOT_X, PIVOT_Y);
+      ctx.translate(pivotX, PIVOT_Y);
       ctx.rotate(angleRad);
-      ctx.translate(-PIVOT_X, -PIVOT_Y);
+      ctx.translate(-pivotX, -PIVOT_Y);
       drawGridBoard(st.grid, st.phase === 'play' ? st.piece : null, st.balance.danger);
       // blocs qui volent lors de l'effondrement
       for (const b of a.flying) {
